@@ -6,4 +6,4 @@ Topics Covered:
 - Relational Databases
 - Transactional Databases
 - Snowflake Schema
-- SQL Primary Functions (SELECT, FROM, ORDER BY, CASE WHEN,...) 
+- SQL Primary Functions (SELECT, FROM, ORDER BY, CASE WHEN, JOIN, ...) 
