@@ -1,0 +1,1469 @@
+{
+    "metadata": {
+        "kernelspec": {
+            "name": "SQL",
+            "display_name": "SQL",
+            "language": "sql"
+        },
+        "language_info": {
+            "name": "sql",
+            "version": ""
+        }
+    },
+    "nbformat_minor": 2,
+    "nbformat": 4,
+    "cells": [
+        {
+            "cell_type": "markdown",
+            "source": [
+                "Elisabeth Gangwer \n",
+                "\n",
+                "Assignment 4"
+            ],
+            "metadata": {
+                "azdata_cell_guid": "1db587bd-97da-4e8b-9f02-b87dbb083f2c"
+            },
+            "attachments": {}
+        },
+        {
+            "cell_type": "code",
+            "source": [
+                "USE ADW"
+            ],
+            "metadata": {
+                "azdata_cell_guid": "240f43fe-a80d-4ff1-9fd8-2f79d317d74f",
+                "language": "sql"
+            },
+            "outputs": [
+                {
+                    "output_type": "display_data",
+                    "data": {
+                        "text/html": "Commands completed successfully."
+                    },
+                    "metadata": {}
+                },
+                {
+                    "output_type": "display_data",
+                    "data": {
+                        "text/html": "Total execution time: 00:00:00.031"
+                    },
+                    "metadata": {}
+                }
+            ],
+            "execution_count": 3
+        },
+        {
+            "cell_type": "markdown",
+            "source": [
+                "<span style=\"font-size: 12.000000pt; font-family: 'TimesNewRomanPSMT'\">In this assignment, you will be writing some database queries based on the ADW data warehouse we have been using in class. You should use Azure Data Studio to explore the database. Remember, it’s not unusual for database administrators to change the database structure and forget to update the documentation! Check your results carefully.&nbsp;</span>"
+            ],
+            "metadata": {
+                "azdata_cell_guid": "5ecc7b6a-cc6c-4951-a571-f82bc33e7680"
+            },
+            "attachments": {}
+        },
+        {
+            "cell_type": "markdown",
+            "source": [
+                "<span style=\"font-size: 12.000000pt; font-family: 'TimesNewRomanPS'; font-weight: 700\">Problem 1</span>\n",
+                "\n",
+                "<span style=\"font-size: 12.000000pt; font-family: 'TimesNewRomanPSMT'\">You have been asked to understand how successful the Touring-3000 promotion was. Produce a report that retrieves the reseller name, country name, product category name, total sales amount, and currency name for this promotion. Be sure to show the highest value sales first.&nbsp;</span>"
+            ],
+            "metadata": {
+                "azdata_cell_guid": "0cb8d8cb-b64f-43f7-aa47-c35e4184b399"
+            },
+            "attachments": {}
+        },
+        {
+            "cell_type": "code",
+            "source": [
+                "SELECT r.ResellerName AS Reseller\n",
+                "     , st.SalesTerritoryCountry AS Country \n",
+                "     , pc.EnglishProductCategoryName AS ProductCategory \n",
+                "     , SUM(fr.SalesAmount) AS TotalSalesAmount\n",
+                "     , m.CurrencyName AS Currency \n",
+                "FROM FactResellerSales fr \n",
+                "INNER JOIN DimReseller r \n",
+                "    ON fr.ResellerKey = r.ResellerKey\n",
+                "INNER JOIN DimPromotion pro \n",
+                "    ON fr.PromotionKey = pro.PromotionKey\n",
+                "INNER JOIN DimGeography g\n",
+                "    ON r.GeographyKey = g.GeographyKey\n",
+                "INNER JOIN DimSalesTerritory st \n",
+                "    ON g.SalesTerritoryKey = st.SalesTerritoryKey\n",
+                "INNER JOIN DimProduct p \n",
+                "    ON fr.ProductKey = p.ProductKey\n",
+                "INNER JOIN DimProductSubcategory ps\n",
+                "    ON p.ProductSubcategoryKey = ps.ProductSubcategoryKey\n",
+                "INNER JOIN DimProductCategory pc \n",
+                "    ON ps.ProductCategoryKey = pc.ProductCategoryKey\n",
+                "INNER JOIN DimCurrency m \n",
+                "    ON fr.CurrencyKey = m.CurrencyKey\n",
+                "WHERE pro.PromotionKey = 13 \n",
+                "GROUP BY r.ResellerName, st.SalesTerritoryCountry, pc.EnglishProductCategoryName, m.CurrencyName\n",
+                "ORDER BY SUM(fr.SalesAmount) DESC"
+            ],
+            "metadata": {
+                "azdata_cell_guid": "34250e27-d979-4a93-808f-6a705408f0a2",
+                "language": "sql",
+                "tags": []
+            },
+            "outputs": [
+                {
+                    "output_type": "display_data",
+                    "data": {
+                        "text/html": "(101 rows affected)"
+                    },
+                    "metadata": {}
+                },
+                {
+                    "output_type": "display_data",
+                    "data": {
+                        "text/html": "Total execution time: 00:00:00.086"
+                    },
+                    "metadata": {}
+                },
+                {
+                    "output_type": "execute_result",
+                    "execution_count": 8,
+                    "data": {
+                        "application/vnd.dataresource+json": {
+                            "schema": {
+                                "fields": [
+                                    {
+                                        "name": "Reseller"
+                                    },
+                                    {
+                                        "name": "Country"
+                                    },
+                                    {
+                                        "name": "ProductCategory"
+                                    },
+                                    {
+                                        "name": "TotalSalesAmount"
+                                    },
+                                    {
+                                        "name": "Currency"
+                                    }
+                                ]
+                            },
+                            "data": [
+                                {
+                                    "Reseller": "Action Bicycle Specialists",
+                                    "Country": "United Kingdom",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "19024.5748",
+                                    "Currency": "United Kingdom Pound"
+                                },
+                                {
+                                    "Reseller": "Westside Plaza",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "19024.5746",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Camping and Sports Store",
+                                    "Country": "Canada",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "17320.8815",
+                                    "Currency": "Canadian Dollar"
+                                },
+                                {
+                                    "Reseller": "Global Bike Retailers",
+                                    "Country": "Germany",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "16752.9838",
+                                    "Currency": "EURO"
+                                },
+                                {
+                                    "Reseller": "Perfect Toys",
+                                    "Country": "France",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "15333.2394",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Roadway Bicycle Supply",
+                                    "Country": "France",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "14481.3929",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Rally Master Company Inc",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "13913.495",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Best Cycle Store",
+                                    "Country": "Germany",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "12493.7506",
+                                    "Currency": "EURO"
+                                },
+                                {
+                                    "Reseller": "Front Runner Bikes",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "11641.9039",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Favorite Toy Distributor",
+                                    "Country": "France",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "10506.1085",
+                                    "Currency": "EURO"
+                                },
+                                {
+                                    "Reseller": "Glossy Bikes",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "9086.3642",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Outstanding Cycles",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "9086.3641",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Another Bicycle Company",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "8518.4665",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Vintage Sport Boutique",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "8518.4665",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Technical Parts Manufacturing",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "8518.4665",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Instruments and Parts Company",
+                                    "Country": "United Kingdom",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "7950.5687",
+                                    "Currency": "United Kingdom Pound"
+                                },
+                                {
+                                    "Reseller": "Metro Metals Co.",
+                                    "Country": "United Kingdom",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "7666.6198",
+                                    "Currency": "United Kingdom Pound"
+                                },
+                                {
+                                    "Reseller": "Extreme Riding Supplies",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "7666.6196",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Next Door Cycles",
+                                    "Country": "Germany",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "7382.671",
+                                    "Currency": "EURO"
+                                },
+                                {
+                                    "Reseller": "Nationwide Supply",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "7382.6709",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Petroleum Products Distributors",
+                                    "Country": "Canada",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "7098.722",
+                                    "Currency": "Canadian Dollar"
+                                },
+                                {
+                                    "Reseller": "Roadway Bike Emporium",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "7098.7219",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Utilitarian Sporting Goods",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "6814.7731",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Grand Industries",
+                                    "Country": "Canada",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "6530.8242",
+                                    "Currency": "Canadian Dollar"
+                                },
+                                {
+                                    "Reseller": "Farthest Bike Store",
+                                    "Country": "Canada",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "6246.8753",
+                                    "Currency": "Canadian Dollar"
+                                },
+                                {
+                                    "Reseller": "Excellent Bikes",
+                                    "Country": "Germany",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "6246.8753",
+                                    "Currency": "EURO"
+                                },
+                                {
+                                    "Reseller": "Running and Cycling Gear",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "5678.9778",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Amalgamated Parts Shop",
+                                    "Country": "Germany",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "5395.0287",
+                                    "Currency": "EURO"
+                                },
+                                {
+                                    "Reseller": "Gears and Parts Company",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "5111.0799",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Rugged Bikes",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "5111.0798",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Eighth Bike Store",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "4827.1311",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Helmets and Cycles",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "4827.131",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Odometers and Accessories Company",
+                                    "Country": "Canada",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "4827.131",
+                                    "Currency": "Canadian Dollar"
+                                },
+                                {
+                                    "Reseller": "Educational Services",
+                                    "Country": "Germany",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "4543.1822",
+                                    "Currency": "EURO"
+                                },
+                                {
+                                    "Reseller": "Sleek Bikes",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "4543.1821",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Immense Manufacturing Company",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "4543.182",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Kickstands and Accessories Company",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "4259.2333",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Fourth Bike Store",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "4259.2333",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Mountain Bike Store",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "4259.2333",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Cycle Parts and Accessories",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3975.2845",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Blue-Ribbon Bike Company",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3975.2844",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Quick Parts and Service",
+                                    "Country": "Canada",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3975.2844",
+                                    "Currency": "Canadian Dollar"
+                                },
+                                {
+                                    "Reseller": "The Bike Outlet",
+                                    "Country": "France",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3975.2844",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Industrial Supplies",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3975.2843",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Authorized Bike Sales and Rental",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3975.2842",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Bike Part Wholesalers",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3691.3355",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Fitness Supplies",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3691.3355",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Exchange Parts Inc.",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3691.3355",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Popular Bike Lines",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3691.3355",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Helpful Sales and Repair Service",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3691.3355",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Stock Parts and Supplies",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3407.3866",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Variety Cycling",
+                                    "Country": "United Kingdom",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3123.4377",
+                                    "Currency": "United Kingdom Pound"
+                                },
+                                {
+                                    "Reseller": "Cycles Wholesaler & Mfg.",
+                                    "Country": "United Kingdom",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3123.4377",
+                                    "Currency": "United Kingdom Pound"
+                                },
+                                {
+                                    "Reseller": "Fast Bike Works",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "3123.4376",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Fasteners & Bolts Outlet",
+                                    "Country": "Canada",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "2839.4889",
+                                    "Currency": "Canadian Dollar"
+                                },
+                                {
+                                    "Reseller": "Locks Company",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "2839.4889",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Metal Clearing House",
+                                    "Country": "Canada",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "2839.4889",
+                                    "Currency": "Canadian Dollar"
+                                },
+                                {
+                                    "Reseller": "Pedaling Components",
+                                    "Country": "Germany",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "2555.5399",
+                                    "Currency": "EURO"
+                                },
+                                {
+                                    "Reseller": "Professional Sales and Service",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "2271.5912",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Fun Toys and Bikes",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "2271.5912",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Rich Department Store",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "2271.591",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Small Bike Accessories Shop",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1987.6423",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Sports Merchandise",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1987.6422",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Honest Repair Service",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1987.6422",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Liquidation Sales",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1703.6934",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Racing Supply Distributors",
+                                    "Country": "France",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1703.6934",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "South Bike Company",
+                                    "Country": "Canada",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1703.6933",
+                                    "Currency": "Canadian Dollar"
+                                },
+                                {
+                                    "Reseller": "Quitting Business Distributors",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1419.7445",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Thrilling Bike Tours",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1419.7445",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Machines & Cycles Store",
+                                    "Country": "Canada",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1419.7445",
+                                    "Currency": "Canadian Dollar"
+                                },
+                                {
+                                    "Reseller": "Finer Sporting Goods",
+                                    "Country": "France",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1419.7445",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "First Supplies",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1419.7445",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Engineered Bike Systems",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1135.7956",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Cycles Sales and Repair",
+                                    "Country": "France",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1135.7956",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Bicycle Exporters",
+                                    "Country": "Germany",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1135.7956",
+                                    "Currency": "EURO"
+                                },
+                                {
+                                    "Reseller": "Novelty Bikes",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1135.7956",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Systematic Sales",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1135.7956",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Plastic Products Manufacturers",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1135.7956",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Finer Mart",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "1135.7955",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Exemplary Cycles",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "851.8467",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Paints and Solvents Company",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "851.8467",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "West Wind Distributors",
+                                    "Country": "Germany",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "851.8467",
+                                    "Currency": "EURO"
+                                },
+                                {
+                                    "Reseller": "Efficient Cycling",
+                                    "Country": "Canada",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "851.8466",
+                                    "Currency": "Canadian Dollar"
+                                },
+                                {
+                                    "Reseller": "Purchase Mart",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "567.8978",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Quality Bike Sales",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "567.8978",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "List Price Catalog Company",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "567.8978",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Rural Department Store",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "567.8978",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Rustic Bike Store",
+                                    "Country": "Germany",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "EURO"
+                                },
+                                {
+                                    "Reseller": "Sensible Sports",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Rampart Amusement Company",
+                                    "Country": "United Kingdom",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "United Kingdom Pound"
+                                },
+                                {
+                                    "Reseller": "Vale Riding Supplies",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Transport Bikes",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Incomparable Bicycle Store",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Off-Price Bike Center",
+                                    "Country": "Germany",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "EURO"
+                                },
+                                {
+                                    "Reseller": "Eastside Cycle Shop",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Eastward Bike Accessories",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Cycle Clearance",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Accessories Network",
+                                    "Country": "France",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Family Entertainment Center",
+                                    "Country": "United States",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "US Dollar"
+                                },
+                                {
+                                    "Reseller": "Fitness Bike Accessories",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "Australian Dollar"
+                                },
+                                {
+                                    "Reseller": "Fitness Discount Store",
+                                    "Country": "Australia",
+                                    "ProductCategory": "Bikes",
+                                    "TotalSalesAmount": "283.9489",
+                                    "Currency": "Australian Dollar"
+                                }
+                            ]
+                        },
+                        "text/html": "<table><tr><th>Reseller</th><th>Country</th><th>ProductCategory</th><th>TotalSalesAmount</th><th>Currency</th></tr><tr><td>Action Bicycle Specialists</td><td>United Kingdom</td><td>Bikes</td><td>19024.5748</td><td>United Kingdom Pound</td></tr><tr><td>Westside Plaza</td><td>United States</td><td>Bikes</td><td>19024.5746</td><td>US Dollar</td></tr><tr><td>Camping and Sports Store</td><td>Canada</td><td>Bikes</td><td>17320.8815</td><td>Canadian Dollar</td></tr><tr><td>Global Bike Retailers</td><td>Germany</td><td>Bikes</td><td>16752.9838</td><td>EURO</td></tr><tr><td>Perfect Toys</td><td>France</td><td>Bikes</td><td>15333.2394</td><td>US Dollar</td></tr><tr><td>Roadway Bicycle Supply</td><td>France</td><td>Bikes</td><td>14481.3929</td><td>US Dollar</td></tr><tr><td>Rally Master Company Inc</td><td>United States</td><td>Bikes</td><td>13913.495</td><td>US Dollar</td></tr><tr><td>Best Cycle Store</td><td>Germany</td><td>Bikes</td><td>12493.7506</td><td>EURO</td></tr><tr><td>Front Runner Bikes</td><td>United States</td><td>Bikes</td><td>11641.9039</td><td>US Dollar</td></tr><tr><td>Favorite Toy Distributor</td><td>France</td><td>Bikes</td><td>10506.1085</td><td>EURO</td></tr><tr><td>Glossy Bikes</td><td>United States</td><td>Bikes</td><td>9086.3642</td><td>US Dollar</td></tr><tr><td>Outstanding Cycles</td><td>United States</td><td>Bikes</td><td>9086.3641</td><td>US Dollar</td></tr><tr><td>Another Bicycle Company</td><td>United States</td><td>Bikes</td><td>8518.4665</td><td>US Dollar</td></tr><tr><td>Vintage Sport Boutique</td><td>United States</td><td>Bikes</td><td>8518.4665</td><td>US Dollar</td></tr><tr><td>Technical Parts Manufacturing</td><td>United States</td><td>Bikes</td><td>8518.4665</td><td>US Dollar</td></tr><tr><td>Instruments and Parts Company</td><td>United Kingdom</td><td>Bikes</td><td>7950.5687</td><td>United Kingdom Pound</td></tr><tr><td>Metro Metals Co.</td><td>United Kingdom</td><td>Bikes</td><td>7666.6198</td><td>United Kingdom Pound</td></tr><tr><td>Extreme Riding Supplies</td><td>United States</td><td>Bikes</td><td>7666.6196</td><td>US Dollar</td></tr><tr><td>Next Door Cycles</td><td>Germany</td><td>Bikes</td><td>7382.671</td><td>EURO</td></tr><tr><td>Nationwide Supply</td><td>Australia</td><td>Bikes</td><td>7382.6709</td><td>Australian Dollar</td></tr><tr><td>Petroleum Products Distributors</td><td>Canada</td><td>Bikes</td><td>7098.722</td><td>Canadian Dollar</td></tr><tr><td>Roadway Bike Emporium</td><td>United States</td><td>Bikes</td><td>7098.7219</td><td>US Dollar</td></tr><tr><td>Utilitarian Sporting Goods</td><td>United States</td><td>Bikes</td><td>6814.7731</td><td>US Dollar</td></tr><tr><td>Grand Industries</td><td>Canada</td><td>Bikes</td><td>6530.8242</td><td>Canadian Dollar</td></tr><tr><td>Farthest Bike Store</td><td>Canada</td><td>Bikes</td><td>6246.8753</td><td>Canadian Dollar</td></tr><tr><td>Excellent Bikes</td><td>Germany</td><td>Bikes</td><td>6246.8753</td><td>EURO</td></tr><tr><td>Running and Cycling Gear</td><td>United States</td><td>Bikes</td><td>5678.9778</td><td>US Dollar</td></tr><tr><td>Amalgamated Parts Shop</td><td>Germany</td><td>Bikes</td><td>5395.0287</td><td>EURO</td></tr><tr><td>Gears and Parts Company</td><td>Australia</td><td>Bikes</td><td>5111.0799</td><td>Australian Dollar</td></tr><tr><td>Rugged Bikes</td><td>United States</td><td>Bikes</td><td>5111.0798</td><td>US Dollar</td></tr><tr><td>Eighth Bike Store</td><td>United States</td><td>Bikes</td><td>4827.1311</td><td>US Dollar</td></tr><tr><td>Helmets and Cycles</td><td>Australia</td><td>Bikes</td><td>4827.131</td><td>Australian Dollar</td></tr><tr><td>Odometers and Accessories Company</td><td>Canada</td><td>Bikes</td><td>4827.131</td><td>Canadian Dollar</td></tr><tr><td>Educational Services</td><td>Germany</td><td>Bikes</td><td>4543.1822</td><td>EURO</td></tr><tr><td>Sleek Bikes</td><td>United States</td><td>Bikes</td><td>4543.1821</td><td>US Dollar</td></tr><tr><td>Immense Manufacturing Company</td><td>United States</td><td>Bikes</td><td>4543.182</td><td>US Dollar</td></tr><tr><td>Kickstands and Accessories Company</td><td>United States</td><td>Bikes</td><td>4259.2333</td><td>US Dollar</td></tr><tr><td>Fourth Bike Store</td><td>United States</td><td>Bikes</td><td>4259.2333</td><td>US Dollar</td></tr><tr><td>Mountain Bike Store</td><td>United States</td><td>Bikes</td><td>4259.2333</td><td>US Dollar</td></tr><tr><td>Cycle Parts and Accessories</td><td>Australia</td><td>Bikes</td><td>3975.2845</td><td>Australian Dollar</td></tr><tr><td>Blue-Ribbon Bike Company</td><td>United States</td><td>Bikes</td><td>3975.2844</td><td>US Dollar</td></tr><tr><td>Quick Parts and Service</td><td>Canada</td><td>Bikes</td><td>3975.2844</td><td>Canadian Dollar</td></tr><tr><td>The Bike Outlet</td><td>France</td><td>Bikes</td><td>3975.2844</td><td>US Dollar</td></tr><tr><td>Industrial Supplies</td><td>United States</td><td>Bikes</td><td>3975.2843</td><td>US Dollar</td></tr><tr><td>Authorized Bike Sales and Rental</td><td>United States</td><td>Bikes</td><td>3975.2842</td><td>US Dollar</td></tr><tr><td>Bike Part Wholesalers</td><td>Australia</td><td>Bikes</td><td>3691.3355</td><td>Australian Dollar</td></tr><tr><td>Fitness Supplies</td><td>United States</td><td>Bikes</td><td>3691.3355</td><td>US Dollar</td></tr><tr><td>Exchange Parts Inc.</td><td>United States</td><td>Bikes</td><td>3691.3355</td><td>US Dollar</td></tr><tr><td>Popular Bike Lines</td><td>Australia</td><td>Bikes</td><td>3691.3355</td><td>Australian Dollar</td></tr><tr><td>Helpful Sales and Repair Service</td><td>Australia</td><td>Bikes</td><td>3691.3355</td><td>Australian Dollar</td></tr><tr><td>Stock Parts and Supplies</td><td>United States</td><td>Bikes</td><td>3407.3866</td><td>US Dollar</td></tr><tr><td>Variety Cycling</td><td>United Kingdom</td><td>Bikes</td><td>3123.4377</td><td>United Kingdom Pound</td></tr><tr><td>Cycles Wholesaler &amp; Mfg.</td><td>United Kingdom</td><td>Bikes</td><td>3123.4377</td><td>United Kingdom Pound</td></tr><tr><td>Fast Bike Works</td><td>Australia</td><td>Bikes</td><td>3123.4376</td><td>Australian Dollar</td></tr><tr><td>Fasteners &amp; Bolts Outlet</td><td>Canada</td><td>Bikes</td><td>2839.4889</td><td>Canadian Dollar</td></tr><tr><td>Locks Company</td><td>United States</td><td>Bikes</td><td>2839.4889</td><td>US Dollar</td></tr><tr><td>Metal Clearing House</td><td>Canada</td><td>Bikes</td><td>2839.4889</td><td>Canadian Dollar</td></tr><tr><td>Pedaling Components</td><td>Germany</td><td>Bikes</td><td>2555.5399</td><td>EURO</td></tr><tr><td>Professional Sales and Service</td><td>United States</td><td>Bikes</td><td>2271.5912</td><td>US Dollar</td></tr><tr><td>Fun Toys and Bikes</td><td>United States</td><td>Bikes</td><td>2271.5912</td><td>US Dollar</td></tr><tr><td>Rich Department Store</td><td>Australia</td><td>Bikes</td><td>2271.591</td><td>Australian Dollar</td></tr><tr><td>Small Bike Accessories Shop</td><td>United States</td><td>Bikes</td><td>1987.6423</td><td>US Dollar</td></tr><tr><td>Sports Merchandise</td><td>United States</td><td>Bikes</td><td>1987.6422</td><td>US Dollar</td></tr><tr><td>Honest Repair Service</td><td>United States</td><td>Bikes</td><td>1987.6422</td><td>US Dollar</td></tr><tr><td>Liquidation Sales</td><td>Australia</td><td>Bikes</td><td>1703.6934</td><td>Australian Dollar</td></tr><tr><td>Racing Supply Distributors</td><td>France</td><td>Bikes</td><td>1703.6934</td><td>US Dollar</td></tr><tr><td>South Bike Company</td><td>Canada</td><td>Bikes</td><td>1703.6933</td><td>Canadian Dollar</td></tr><tr><td>Quitting Business Distributors</td><td>United States</td><td>Bikes</td><td>1419.7445</td><td>US Dollar</td></tr><tr><td>Thrilling Bike Tours</td><td>United States</td><td>Bikes</td><td>1419.7445</td><td>US Dollar</td></tr><tr><td>Machines &amp; Cycles Store</td><td>Canada</td><td>Bikes</td><td>1419.7445</td><td>Canadian Dollar</td></tr><tr><td>Finer Sporting Goods</td><td>France</td><td>Bikes</td><td>1419.7445</td><td>US Dollar</td></tr><tr><td>First Supplies</td><td>Australia</td><td>Bikes</td><td>1419.7445</td><td>Australian Dollar</td></tr><tr><td>Engineered Bike Systems</td><td>United States</td><td>Bikes</td><td>1135.7956</td><td>US Dollar</td></tr><tr><td>Cycles Sales and Repair</td><td>France</td><td>Bikes</td><td>1135.7956</td><td>US Dollar</td></tr><tr><td>Bicycle Exporters</td><td>Germany</td><td>Bikes</td><td>1135.7956</td><td>EURO</td></tr><tr><td>Novelty Bikes</td><td>United States</td><td>Bikes</td><td>1135.7956</td><td>US Dollar</td></tr><tr><td>Systematic Sales</td><td>United States</td><td>Bikes</td><td>1135.7956</td><td>US Dollar</td></tr><tr><td>Plastic Products Manufacturers</td><td>Australia</td><td>Bikes</td><td>1135.7956</td><td>Australian Dollar</td></tr><tr><td>Finer Mart</td><td>United States</td><td>Bikes</td><td>1135.7955</td><td>US Dollar</td></tr><tr><td>Exemplary Cycles</td><td>United States</td><td>Bikes</td><td>851.8467</td><td>US Dollar</td></tr><tr><td>Paints and Solvents Company</td><td>United States</td><td>Bikes</td><td>851.8467</td><td>US Dollar</td></tr><tr><td>West Wind Distributors</td><td>Germany</td><td>Bikes</td><td>851.8467</td><td>EURO</td></tr><tr><td>Efficient Cycling</td><td>Canada</td><td>Bikes</td><td>851.8466</td><td>Canadian Dollar</td></tr><tr><td>Purchase Mart</td><td>United States</td><td>Bikes</td><td>567.8978</td><td>US Dollar</td></tr><tr><td>Quality Bike Sales</td><td>Australia</td><td>Bikes</td><td>567.8978</td><td>Australian Dollar</td></tr><tr><td>List Price Catalog Company</td><td>Australia</td><td>Bikes</td><td>567.8978</td><td>Australian Dollar</td></tr><tr><td>Rural Department Store</td><td>United States</td><td>Bikes</td><td>567.8978</td><td>US Dollar</td></tr><tr><td>Rustic Bike Store</td><td>Germany</td><td>Bikes</td><td>283.9489</td><td>EURO</td></tr><tr><td>Sensible Sports</td><td>Australia</td><td>Bikes</td><td>283.9489</td><td>Australian Dollar</td></tr><tr><td>Rampart Amusement Company</td><td>United Kingdom</td><td>Bikes</td><td>283.9489</td><td>United Kingdom Pound</td></tr><tr><td>Vale Riding Supplies</td><td>United States</td><td>Bikes</td><td>283.9489</td><td>US Dollar</td></tr><tr><td>Transport Bikes</td><td>United States</td><td>Bikes</td><td>283.9489</td><td>US Dollar</td></tr><tr><td>Incomparable Bicycle Store</td><td>United States</td><td>Bikes</td><td>283.9489</td><td>US Dollar</td></tr><tr><td>Off-Price Bike Center</td><td>Germany</td><td>Bikes</td><td>283.9489</td><td>EURO</td></tr><tr><td>Eastside Cycle Shop</td><td>Australia</td><td>Bikes</td><td>283.9489</td><td>Australian Dollar</td></tr><tr><td>Eastward Bike Accessories</td><td>Australia</td><td>Bikes</td><td>283.9489</td><td>Australian Dollar</td></tr><tr><td>Cycle Clearance</td><td>United States</td><td>Bikes</td><td>283.9489</td><td>US Dollar</td></tr><tr><td>Accessories Network</td><td>France</td><td>Bikes</td><td>283.9489</td><td>US Dollar</td></tr><tr><td>Family Entertainment Center</td><td>United States</td><td>Bikes</td><td>283.9489</td><td>US Dollar</td></tr><tr><td>Fitness Bike Accessories</td><td>Australia</td><td>Bikes</td><td>283.9489</td><td>Australian Dollar</td></tr><tr><td>Fitness Discount Store</td><td>Australia</td><td>Bikes</td><td>283.9489</td><td>Australian Dollar</td></tr></table>"
+                    },
+                    "metadata": {}
+                }
+            ],
+            "execution_count": 8
+        },
+        {
+            "cell_type": "markdown",
+            "source": [
+                "<span style=\"font-size: 12.000000pt; font-family: 'TimesNewRomanPSMT'\">You have been asked to examine the performance of sales using the Euro currency. Produce a report showing state or province name, city name, and total reseller sales, subtotaled by city, for all EURO sales. You should have three columns, called State/Province, City, and Total Reseller Sales, in alphabetical order by State/Province. The total for each state or province should have the word \"Total\" instead of NULL in the city column. The overall total should have the word \"Grand\" in the State/Province column.&nbsp;</span>"
+            ],
+            "metadata": {
+                "language": "sql",
+                "azdata_cell_guid": "5c33871a-4487-4ff2-a9d5-f93d8d5ff750"
+            },
+            "attachments": {}
+        },
+        {
+            "cell_type": "code",
+            "source": [
+                "SELECT g.StateProvinceName AS 'State/Province' \n",
+                "    , g.City AS City\n",
+                "    , SUM(fr.SalesAmount) AS Subtotal\n",
+                "FROM FactResellerSales fr \n",
+                "INNER JOIN DimSalesTerritory  st \n",
+                "ON fr.SalesTerritoryKey = st.SalesTerritoryKey\n",
+                "INNER JOIN DimGeography g\n",
+                "    ON st.SalesTerritoryKey = g.SalesTerritoryKey\n",
+                "INNER JOIN DimCurrency c \n",
+                "    ON fr.CurrencyKey = c.CurrencyKey\n",
+                "WHERE c.CurrencyName = 'EURO'\n",
+                "GROUP BY g.City, g.StateProvinceName\n",
+                ""
+            ],
+            "metadata": {
+                "azdata_cell_guid": "76cd45dc-121f-4b40-9ddf-d0b563d380b0",
+                "language": "sql"
+            },
+            "outputs": [
+                {
+                    "output_type": "display_data",
+                    "data": {
+                        "text/html": "(87 rows affected)"
+                    },
+                    "metadata": {}
+                },
+                {
+                    "output_type": "display_data",
+                    "data": {
+                        "text/html": "Total execution time: 00:00:00.065"
+                    },
+                    "metadata": {}
+                },
+                {
+                    "output_type": "execute_result",
+                    "metadata": {},
+                    "execution_count": 8,
+                    "data": {
+                        "application/vnd.dataresource+json": {
+                            "schema": {
+                                "fields": [
+                                    {
+                                        "name": "State/Province"
+                                    },
+                                    {
+                                        "name": "City"
+                                    },
+                                    {
+                                        "name": "Subtotal"
+                                    }
+                                ]
+                            },
+                            "data": [
+                                {
+                                    "State/Province": "Bayern",
+                                    "City": "Augsburg",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Bayern",
+                                    "City": "Erlangen",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Bayern",
+                                    "City": "Frankfurt",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Bayern",
+                                    "City": "Grevenbroich",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Bayern",
+                                    "City": "Hof",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Bayern",
+                                    "City": "Ingolstadt",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Brandenburg",
+                                    "City": "Berlin",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Brandenburg",
+                                    "City": "Eilenburg",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Charente-Maritime",
+                                    "City": "Saint Ouen",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Essonne",
+                                    "City": "Les Ulis",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Essonne",
+                                    "City": "Morangis",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Essonne",
+                                    "City": "Verrieres Le Buisson",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Garonne (Haute)",
+                                    "City": "Colomiers",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Gers",
+                                    "City": "Aujan Mournede",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Hamburg",
+                                    "City": "Ascheim",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hamburg",
+                                    "City": "Augsburg",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hamburg",
+                                    "City": "Berlin",
+                                    "Subtotal": "7935952.1492"
+                                },
+                                {
+                                    "State/Province": "Hamburg",
+                                    "City": "Bonn",
+                                    "Subtotal": "3967976.0746"
+                                },
+                                {
+                                    "State/Province": "Hamburg",
+                                    "City": "Essen",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hamburg",
+                                    "City": "Frankfurt am Main",
+                                    "Subtotal": "3967976.0746"
+                                },
+                                {
+                                    "State/Province": "Hamburg",
+                                    "City": "Hamburg",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hamburg",
+                                    "City": "Muehlheim",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hamburg",
+                                    "City": "Mühlheim",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hamburg",
+                                    "City": "München",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hamburg",
+                                    "City": "Paderborn",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hauts de Seine",
+                                    "City": "Boulogne-Billancourt",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Hauts de Seine",
+                                    "City": "Colombes",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Hauts de Seine",
+                                    "City": "Courbevoie",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Hauts de Seine",
+                                    "City": "Paris La Defense",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Hauts de Seine",
+                                    "City": "Sèvres",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Hauts de Seine",
+                                    "City": "Suresnes",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Hessen",
+                                    "City": "Bad Soden",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hessen",
+                                    "City": "Berlin",
+                                    "Subtotal": "7935952.1492"
+                                },
+                                {
+                                    "State/Province": "Hessen",
+                                    "City": "Darmstadt",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hessen",
+                                    "City": "Dresden",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hessen",
+                                    "City": "Duesseldorf",
+                                    "Subtotal": "3967976.0746"
+                                },
+                                {
+                                    "State/Province": "Hessen",
+                                    "City": "Frankfurt",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hessen",
+                                    "City": "Hamburg",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hessen",
+                                    "City": "Kassel",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hessen",
+                                    "City": "München",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Hessen",
+                                    "City": "Salzgitter",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Loir et Cher",
+                                    "City": "Saint Ouen",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Loiret",
+                                    "City": "Orleans",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Moselle",
+                                    "City": "Metz",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Nord",
+                                    "City": "Croix",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Nord",
+                                    "City": "Dunkerque",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Nord",
+                                    "City": "Lille",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Nord",
+                                    "City": "Roncq",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Nord",
+                                    "City": "Roubaix",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Nord",
+                                    "City": "Villeneuve-d'Ascq",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Nordrhein-Westfalen",
+                                    "City": "Berlin",
+                                    "Subtotal": "3967976.0746"
+                                },
+                                {
+                                    "State/Province": "Nordrhein-Westfalen",
+                                    "City": "Bonn",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Nordrhein-Westfalen",
+                                    "City": "Bottrop",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Nordrhein-Westfalen",
+                                    "City": "Braunschweig",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Nordrhein-Westfalen",
+                                    "City": "Hannover",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Nordrhein-Westfalen",
+                                    "City": "Leipzig",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Nordrhein-Westfalen",
+                                    "City": "München",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Nordrhein-Westfalen",
+                                    "City": "Paderborn",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Nordrhein-Westfalen",
+                                    "City": "Solingen",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Nordrhein-Westfalen",
+                                    "City": "Werne",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Pas de Calais",
+                                    "City": "Boulogne-sur-Mer",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Saarland",
+                                    "City": "Berlin",
+                                    "Subtotal": "5951964.1119"
+                                },
+                                {
+                                    "State/Province": "Saarland",
+                                    "City": "Frankfurt am Main",
+                                    "Subtotal": "3967976.0746"
+                                },
+                                {
+                                    "State/Province": "Saarland",
+                                    "City": "Kiel",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Saarland",
+                                    "City": "München",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Saarland",
+                                    "City": "Münster",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Saarland",
+                                    "City": "Neunkirchen",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Saarland",
+                                    "City": "Offenbach",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Saarland",
+                                    "City": "Poing",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Saarland",
+                                    "City": "Saarbrücken",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Saarland",
+                                    "City": "Saarlouis",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Saarland",
+                                    "City": "Stuttgart",
+                                    "Subtotal": "3967976.0746"
+                                },
+                                {
+                                    "State/Province": "Saarland",
+                                    "City": "Sulzbach Taunus",
+                                    "Subtotal": "1983988.0373"
+                                },
+                                {
+                                    "State/Province": "Seine (Paris)",
+                                    "City": "Paris",
+                                    "Subtotal": "6377119.7347"
+                                },
+                                {
+                                    "State/Province": "Seine et Marne",
+                                    "City": "Lieusaint",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Seine et Marne",
+                                    "City": "Roissy en Brie",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Seine Saint Denis",
+                                    "City": "Bobigny",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Seine Saint Denis",
+                                    "City": "Drancy",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Seine Saint Denis",
+                                    "City": "Pantin",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Seine Saint Denis",
+                                    "City": "Saint-Denis",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Seine Saint Denis",
+                                    "City": "Tremblay-en-France",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Somme",
+                                    "City": "Saint Ouen",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Val de Marne",
+                                    "City": "Orly",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Val d'Oise",
+                                    "City": "Cergy",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Yveline",
+                                    "City": "Chatou",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Yveline",
+                                    "City": "Saint Germain en Laye",
+                                    "Subtotal": "490547.6719"
+                                },
+                                {
+                                    "State/Province": "Yveline",
+                                    "City": "Versailles",
+                                    "Subtotal": "490547.6719"
+                                }
+                            ]
+                        },
+                        "text/html": [
+                            "<table>",
+                            "<tr><th>State/Province</th><th>City</th><th>Subtotal</th></tr>",
+                            "<tr><td>Bayern</td><td>Augsburg</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Bayern</td><td>Erlangen</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Bayern</td><td>Frankfurt</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Bayern</td><td>Grevenbroich</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Bayern</td><td>Hof</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Bayern</td><td>Ingolstadt</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Brandenburg</td><td>Berlin</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Brandenburg</td><td>Eilenburg</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Charente-Maritime</td><td>Saint Ouen</td><td>490547.6719</td></tr>",
+                            "<tr><td>Essonne</td><td>Les Ulis</td><td>490547.6719</td></tr>",
+                            "<tr><td>Essonne</td><td>Morangis</td><td>490547.6719</td></tr>",
+                            "<tr><td>Essonne</td><td>Verrieres Le Buisson</td><td>490547.6719</td></tr>",
+                            "<tr><td>Garonne (Haute)</td><td>Colomiers</td><td>490547.6719</td></tr>",
+                            "<tr><td>Gers</td><td>Aujan Mournede</td><td>490547.6719</td></tr>",
+                            "<tr><td>Hamburg</td><td>Ascheim</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hamburg</td><td>Augsburg</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hamburg</td><td>Berlin</td><td>7935952.1492</td></tr>",
+                            "<tr><td>Hamburg</td><td>Bonn</td><td>3967976.0746</td></tr>",
+                            "<tr><td>Hamburg</td><td>Essen</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hamburg</td><td>Frankfurt am Main</td><td>3967976.0746</td></tr>",
+                            "<tr><td>Hamburg</td><td>Hamburg</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hamburg</td><td>Muehlheim</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hamburg</td><td>Mühlheim</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hamburg</td><td>München</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hamburg</td><td>Paderborn</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hauts de Seine</td><td>Boulogne-Billancourt</td><td>490547.6719</td></tr>",
+                            "<tr><td>Hauts de Seine</td><td>Colombes</td><td>490547.6719</td></tr>",
+                            "<tr><td>Hauts de Seine</td><td>Courbevoie</td><td>490547.6719</td></tr>",
+                            "<tr><td>Hauts de Seine</td><td>Paris La Defense</td><td>490547.6719</td></tr>",
+                            "<tr><td>Hauts de Seine</td><td>Sèvres</td><td>490547.6719</td></tr>",
+                            "<tr><td>Hauts de Seine</td><td>Suresnes</td><td>490547.6719</td></tr>",
+                            "<tr><td>Hessen</td><td>Bad Soden</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hessen</td><td>Berlin</td><td>7935952.1492</td></tr>",
+                            "<tr><td>Hessen</td><td>Darmstadt</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hessen</td><td>Dresden</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hessen</td><td>Duesseldorf</td><td>3967976.0746</td></tr>",
+                            "<tr><td>Hessen</td><td>Frankfurt</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hessen</td><td>Hamburg</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hessen</td><td>Kassel</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hessen</td><td>München</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Hessen</td><td>Salzgitter</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Loir et Cher</td><td>Saint Ouen</td><td>490547.6719</td></tr>",
+                            "<tr><td>Loiret</td><td>Orleans</td><td>490547.6719</td></tr>",
+                            "<tr><td>Moselle</td><td>Metz</td><td>490547.6719</td></tr>",
+                            "<tr><td>Nord</td><td>Croix</td><td>490547.6719</td></tr>",
+                            "<tr><td>Nord</td><td>Dunkerque</td><td>490547.6719</td></tr>",
+                            "<tr><td>Nord</td><td>Lille</td><td>490547.6719</td></tr>",
+                            "<tr><td>Nord</td><td>Roncq</td><td>490547.6719</td></tr>",
+                            "<tr><td>Nord</td><td>Roubaix</td><td>490547.6719</td></tr>",
+                            "<tr><td>Nord</td><td>Villeneuve-d&#39;Ascq</td><td>490547.6719</td></tr>",
+                            "<tr><td>Nordrhein-Westfalen</td><td>Berlin</td><td>3967976.0746</td></tr>",
+                            "<tr><td>Nordrhein-Westfalen</td><td>Bonn</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Nordrhein-Westfalen</td><td>Bottrop</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Nordrhein-Westfalen</td><td>Braunschweig</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Nordrhein-Westfalen</td><td>Hannover</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Nordrhein-Westfalen</td><td>Leipzig</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Nordrhein-Westfalen</td><td>München</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Nordrhein-Westfalen</td><td>Paderborn</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Nordrhein-Westfalen</td><td>Solingen</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Nordrhein-Westfalen</td><td>Werne</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Pas de Calais</td><td>Boulogne-sur-Mer</td><td>490547.6719</td></tr>",
+                            "<tr><td>Saarland</td><td>Berlin</td><td>5951964.1119</td></tr>",
+                            "<tr><td>Saarland</td><td>Frankfurt am Main</td><td>3967976.0746</td></tr>",
+                            "<tr><td>Saarland</td><td>Kiel</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Saarland</td><td>München</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Saarland</td><td>Münster</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Saarland</td><td>Neunkirchen</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Saarland</td><td>Offenbach</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Saarland</td><td>Poing</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Saarland</td><td>Saarbrücken</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Saarland</td><td>Saarlouis</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Saarland</td><td>Stuttgart</td><td>3967976.0746</td></tr>",
+                            "<tr><td>Saarland</td><td>Sulzbach Taunus</td><td>1983988.0373</td></tr>",
+                            "<tr><td>Seine (Paris)</td><td>Paris</td><td>6377119.7347</td></tr>",
+                            "<tr><td>Seine et Marne</td><td>Lieusaint</td><td>490547.6719</td></tr>",
+                            "<tr><td>Seine et Marne</td><td>Roissy en Brie</td><td>490547.6719</td></tr>",
+                            "<tr><td>Seine Saint Denis</td><td>Bobigny</td><td>490547.6719</td></tr>",
+                            "<tr><td>Seine Saint Denis</td><td>Drancy</td><td>490547.6719</td></tr>",
+                            "<tr><td>Seine Saint Denis</td><td>Pantin</td><td>490547.6719</td></tr>",
+                            "<tr><td>Seine Saint Denis</td><td>Saint-Denis</td><td>490547.6719</td></tr>",
+                            "<tr><td>Seine Saint Denis</td><td>Tremblay-en-France</td><td>490547.6719</td></tr>",
+                            "<tr><td>Somme</td><td>Saint Ouen</td><td>490547.6719</td></tr>",
+                            "<tr><td>Val de Marne</td><td>Orly</td><td>490547.6719</td></tr>",
+                            "<tr><td>Val d&#39;Oise</td><td>Cergy</td><td>490547.6719</td></tr>",
+                            "<tr><td>Yveline</td><td>Chatou</td><td>490547.6719</td></tr>",
+                            "<tr><td>Yveline</td><td>Saint Germain en Laye</td><td>490547.6719</td></tr>",
+                            "<tr><td>Yveline</td><td>Versailles</td><td>490547.6719</td></tr>",
+                            "</table>"
+                        ]
+                    }
+                }
+            ],
+            "execution_count": 8
+        }
+    ]
+}
