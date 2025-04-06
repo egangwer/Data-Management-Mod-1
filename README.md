@@ -1,9 +1,13 @@
 # Data-Management-Mod-1
-Assignments & Projects for Data Management Class, primarily in SQL. 
+This repository contains assignments and projects from the Data Management course, with a strong focus on SQL and relational database design.
 
-Topics Covered: 
+## Key Concepts Covered
 - Normalization
-- Relational Databases
-- Transactional Databases
-- Snowflake Schema
-- SQL Primary Functions (SELECT, FROM, ORDER BY, CASE WHEN, JOIN, ...) 
+- Relational & Transactional Databases
+- Snowflake Schema Design
+- Core SQL Functions:
+   - SELECT, FROM, WHERE, ORDER BY, GROUP BY, CASE WHEN, JOIN, and more
+
+## Tools Used
+- Azure Data Studio – for writing and executing queries
+- AdventureWorks Database – used for hands-on practice with real-world business data
